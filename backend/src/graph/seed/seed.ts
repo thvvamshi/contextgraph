@@ -8,16 +8,10 @@ const customers = [
     tier: "Enterprise",
   },
   {
-    id: "customer-globex",
-    name: "Globex Financial",
-    industry: "Banking",
-    tier: "Enterprise",
-  },
-  {
     id: "customer-nova",
     name: "Nova Retail",
     industry: "Retail",
-    tier: "Growth",
+    tier: "Enterprise",
   },
 ];
 
@@ -34,12 +28,6 @@ const products = [
     category: "Commerce",
     status: "active",
   },
-  {
-    id: "product-auth",
-    name: "Identity & Authentication",
-    category: "Security",
-    status: "active",
-  },
 ];
 
 const features = [
@@ -54,14 +42,9 @@ const features = [
     description: "Delivers payment lifecycle events",
   },
   {
-    id: "feature-checkout-session",
-    name: "Checkout Sessions",
-    description: "Creates and manages checkout sessions",
-  },
-  {
-    id: "feature-oauth",
-    name: "OAuth Authentication",
-    description: "Provides OAuth-based authentication",
+    id: "feature-checkout",
+    name: "Checkout",
+    description: "Provides checkout session functionality",
   },
 ];
 
@@ -74,11 +57,6 @@ const teams = [
   {
     id: "team-checkout",
     name: "Checkout Engineering",
-    function: "Engineering",
-  },
-  {
-    id: "team-identity",
-    name: "Identity Platform",
     function: "Engineering",
   },
 ];
@@ -95,14 +73,14 @@ const people = [
     role: "Payments Engineer",
   },
   {
-    id: "person-arjun",
-    name: "Arjun Mehta",
-    role: "Staff Engineer",
-  },
-  {
     id: "person-priya",
     name: "Priya Nair",
     role: "Support Engineer",
+  },
+  {
+    id: "person-arjun",
+    name: "Arjun Mehta",
+    role: "Staff Engineer",
   },
 ];
 
@@ -111,12 +89,6 @@ const bugs = [
     id: "bug-221",
     title: "Payment API returning intermittent 500 errors",
     severity: "critical",
-    status: "resolved",
-  },
-  {
-    id: "bug-235",
-    title: "Duplicate webhook delivery",
-    severity: "high",
     status: "resolved",
   },
   {
@@ -135,11 +107,6 @@ const resolutions = [
   },
   {
     id: "resolution-91",
-    title: "Add webhook idempotency key",
-    status: "verified",
-  },
-  {
-    id: "resolution-103",
     title: "Increase checkout session TTL",
     status: "verified",
   },
@@ -148,13 +115,8 @@ const resolutions = [
 const documents = [
   {
     id: "document-payment-runbook",
-    title: "Payment API Incident Runbook",
+    title: "Payment Incident Runbook",
     type: "runbook",
-  },
-  {
-    id: "document-webhook-guide",
-    title: "Webhook Reliability Guide",
-    type: "technical-guide",
   },
   {
     id: "document-checkout-runbook",
@@ -175,16 +137,6 @@ const tickets = [
     bugId: "bug-221",
   },
   {
-    id: "ticket-1057",
-    title: "Duplicate payment webhook events",
-    status: "resolved",
-    priority: "high",
-    createdAt: "2026-08-18T14:20:00Z",
-    customerId: "customer-globex",
-    productId: "product-payment-api",
-    bugId: "bug-235",
-  },
-  {
     id: "ticket-1071",
     title: "Checkout sessions expire unexpectedly",
     status: "investigating",
@@ -193,6 +145,57 @@ const tickets = [
     customerId: "customer-nova",
     productId: "product-checkout",
     bugId: "bug-247",
+  },
+];
+
+/*
+ * Additional graph entities required by the strict contract.
+ */
+
+const incidents = [
+  {
+    id: "incident-payment-500",
+    title: "Payment API 500 Incident",
+    status: "resolved",
+  },
+  {
+    id: "incident-checkout-timeout",
+    title: "Checkout Timeout Incident",
+    status: "investigating",
+  },
+];
+
+const components = [
+  {
+    id: "component-payment-gateway",
+    name: "Payment Gateway",
+    type: "service",
+  },
+  {
+    id: "component-checkout-service",
+    name: "Checkout Service",
+    type: "service",
+  },
+];
+
+const vendors = [
+  {
+    id: "vendor-stripe",
+    name: "Stripe",
+    type: "payment-provider",
+  },
+  {
+    id: "vendor-adyen",
+    name: "Adyen",
+    type: "payment-provider",
+  },
+];
+
+const environments = [
+  {
+    id: "environment-production",
+    name: "Production",
+    type: "environment",
   },
 ];
 
@@ -207,21 +210,24 @@ const productFeatures = [
   },
   {
     productId: "product-checkout",
-    featureId: "feature-checkout-session",
+    featureId: "feature-checkout",
+  },
+];
+
+const bugProducts = [
+  {
+    bugId: "bug-221",
+    productId: "product-payment-api",
   },
   {
-    productId: "product-auth",
-    featureId: "feature-oauth",
+    bugId: "bug-247",
+    productId: "product-checkout",
   },
 ];
 
 const bugTeams = [
   {
     bugId: "bug-221",
-    teamId: "team-payments",
-  },
-  {
-    bugId: "bug-235",
     teamId: "team-payments",
   },
   {
@@ -240,12 +246,12 @@ const teamMembers = [
     personId: "person-ananya",
   },
   {
-    teamId: "team-checkout",
-    personId: "person-arjun",
-  },
-  {
     teamId: "team-payments",
     personId: "person-priya",
+  },
+  {
+    teamId: "team-checkout",
+    personId: "person-arjun",
   },
 ];
 
@@ -255,12 +261,8 @@ const bugResolutions = [
     resolutionId: "resolution-87",
   },
   {
-    bugId: "bug-235",
-    resolutionId: "resolution-91",
-  },
-  {
     bugId: "bug-247",
-    resolutionId: "resolution-103",
+    resolutionId: "resolution-91",
   },
 ];
 
@@ -271,11 +273,51 @@ const resolutionDocuments = [
   },
   {
     resolutionId: "resolution-91",
-    documentId: "document-webhook-guide",
+    documentId: "document-checkout-runbook",
+  },
+];
+
+/*
+ * Infrastructure relationships.
+ */
+
+const customerIncidents = [
+  {
+    customerId: "customer-acme",
+    incidentId: "incident-payment-500",
   },
   {
-    resolutionId: "resolution-103",
-    documentId: "document-checkout-runbook",
+    customerId: "customer-nova",
+    incidentId: "incident-checkout-timeout",
+  },
+];
+
+const incidentComponents = [
+  {
+    incidentId: "incident-payment-500",
+    componentId: "component-payment-gateway",
+  },
+  {
+    incidentId: "incident-checkout-timeout",
+    componentId: "component-checkout-service",
+  },
+];
+
+const componentVendors = [
+  {
+    componentId: "component-payment-gateway",
+    vendorId: "vendor-stripe",
+  },
+  {
+    componentId: "component-checkout-service",
+    vendorId: "vendor-adyen",
+  },
+];
+
+const productEnvironments = [
+  {
+    productId: "product-payment-api",
+    environmentId: "environment-production",
   },
 ];
 
@@ -391,6 +433,50 @@ const seedSteps: SeedStep[] = [
   },
 
   {
+    name: "incidents",
+    query: `
+      UNWIND $rows AS row
+      MERGE (n:Incident {id: row.id})
+      SET n.title = row.title,
+          n.status = row.status
+    `,
+    parameters: { rows: incidents },
+  },
+
+  {
+    name: "components",
+    query: `
+      UNWIND $rows AS row
+      MERGE (n:Component {id: row.id})
+      SET n.name = row.name,
+          n.type = row.type
+    `,
+    parameters: { rows: components },
+  },
+
+  {
+    name: "vendors",
+    query: `
+      UNWIND $rows AS row
+      MERGE (n:Vendor {id: row.id})
+      SET n.name = row.name,
+          n.type = row.type
+    `,
+    parameters: { rows: vendors },
+  },
+
+  {
+    name: "environments",
+    query: `
+      UNWIND $rows AS row
+      MERGE (n:Environment {id: row.id})
+      SET n.name = row.name,
+          n.type = row.type
+    `,
+    parameters: { rows: environments },
+  },
+
+  {
     name: "ticket-customer relationships",
     query: `
       UNWIND $rows AS row
@@ -457,12 +543,7 @@ const seedSteps: SeedStep[] = [
       MATCH (product:Product {id: row.productId})
       MERGE (bug)-[:AFFECTS]->(product)
     `,
-    parameters: {
-      rows: tickets.map((ticket) => ({
-        bugId: ticket.bugId,
-        productId: ticket.productId,
-      })),
-    },
+    parameters: { rows: bugProducts },
   },
 
   {
@@ -507,6 +588,50 @@ const seedSteps: SeedStep[] = [
       MERGE (resolution)-[:DOCUMENTED_IN]->(document)
     `,
     parameters: { rows: resolutionDocuments },
+  },
+
+  {
+    name: "customer-incident relationships",
+    query: `
+      UNWIND $rows AS row
+      MATCH (customer:Customer {id: row.customerId})
+      MATCH (incident:Incident {id: row.incidentId})
+      MERGE (customer)-[:HAS_INCIDENT]->(incident)
+    `,
+    parameters: { rows: customerIncidents },
+  },
+
+  {
+    name: "incident-component relationships",
+    query: `
+      UNWIND $rows AS row
+      MATCH (incident:Incident {id: row.incidentId})
+      MATCH (component:Component {id: row.componentId})
+      MERGE (incident)-[:AFFECTS]->(component)
+    `,
+    parameters: { rows: incidentComponents },
+  },
+
+  {
+    name: "component-vendor relationships",
+    query: `
+      UNWIND $rows AS row
+      MATCH (component:Component {id: row.componentId})
+      MATCH (vendor:Vendor {id: row.vendorId})
+      MERGE (component)-[:USES]->(vendor)
+    `,
+    parameters: { rows: componentVendors },
+  },
+
+  {
+    name: "product-environment relationships",
+    query: `
+      UNWIND $rows AS row
+      MATCH (product:Product {id: row.productId})
+      MATCH (environment:Environment {id: row.environmentId})
+      MERGE (product)-[:DEPLOYED_IN]->(environment)
+    `,
+    parameters: { rows: productEnvironments },
   },
 ];
 

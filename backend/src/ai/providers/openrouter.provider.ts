@@ -8,15 +8,9 @@ import type {
   AIProviderResponse,
 } from "./ai-provider.js";
 
-const OPENROUTER_MODELS = [
-  "z-ai/glm-5.2:free",
-  "google/gemma-4-31b-it:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "google/gemma-4-26b-a4b-it:free",
-  "nvidia/nemotron-3-nano-30b-a3b:free",
-];
-
-const extractErrorMessage = (error: unknown): string => {
+const extractErrorMessage = (
+  error: unknown,
+): string => {
   if (error instanceof Error) {
     return error.message;
   }
@@ -25,7 +19,8 @@ const extractErrorMessage = (error: unknown): string => {
     typeof error === "object" &&
     error !== null
   ) {
-    const value = error as Record<string, unknown>;
+    const value =
+      error as Record<string, unknown>;
 
     if (typeof value.message === "string") {
       return value.message;
@@ -35,13 +30,13 @@ const extractErrorMessage = (error: unknown): string => {
       typeof value.error === "object" &&
       value.error !== null
     ) {
-      const nestedError =
+      const nested =
         value.error as Record<string, unknown>;
 
       if (
-        typeof nestedError.message === "string"
+        typeof nested.message === "string"
       ) {
-        return nestedError.message;
+        return nested.message;
       }
     }
 
@@ -56,13 +51,14 @@ const extractErrorMessage = (error: unknown): string => {
 };
 
 const extractStatus = (
-  error: unknown
+  error: unknown,
 ): number | undefined => {
   if (
     typeof error === "object" &&
     error !== null
   ) {
-    const value = error as Record<string, unknown>;
+    const value =
+      error as Record<string, unknown>;
 
     if (typeof value.status === "number") {
       return value.status;
@@ -71,13 +67,27 @@ const extractStatus = (
     if (typeof value.code === "number") {
       return value.code;
     }
+
+    if (
+      typeof value.response === "object" &&
+      value.response !== null
+    ) {
+      const response =
+        value.response as Record<string, unknown>;
+
+      if (
+        typeof response.status === "number"
+      ) {
+        return response.status;
+      }
+    }
   }
 
   return undefined;
 };
 
 const extractContent = (
-  content: unknown
+  content: unknown,
 ): string => {
   if (typeof content === "string") {
     return content;
@@ -100,7 +110,9 @@ const extractContent = (
         const value =
           part as Record<string, unknown>;
 
-        if (typeof value.text === "string") {
+        if (
+          typeof value.text === "string"
+        ) {
           return value.text;
         }
 
@@ -120,67 +132,86 @@ export class OpenRouterProvider
   implements AIProvider
 {
   async generate(
-    request: AIProviderRequest
+    request: AIProviderRequest,
   ): Promise<AIProviderResponse> {
     if (!env.openrouter.apiKey) {
       throw new Error(
-        "OPENROUTER_API_KEY is not configured"
+        "OPENROUTER_API_KEY is not configured",
+      );
+    }
+
+    const models =
+      env.openrouter.models;
+
+    if (models.length === 0) {
+      throw new Error(
+        "AI_MODELS is not configured",
       );
     }
 
     let lastError =
       "No OpenRouter models were attempted.";
 
-    for (
-      const modelName of OPENROUTER_MODELS
-    ) {
+    console.log(
+      `[AI] Configured models: ${models.join(", ")}`,
+    );
+
+    for (const modelName of models) {
       console.log(
-        `[AI] Trying OpenRouter model: ${modelName}`
+        `[AI] Trying OpenRouter model: ${modelName}`,
       );
 
       try {
-        const model = new ChatOpenAI({
-          apiKey: env.openrouter.apiKey,
-          model: modelName,
-          temperature: 0.1,
+        const model =
+          new ChatOpenAI({
+            apiKey:
+              env.openrouter.apiKey,
 
-          configuration: {
-            baseURL: env.openrouter.baseUrl,
+            model: modelName,
 
-            defaultHeaders: {
-              "HTTP-Referer":
-                "http://localhost:5000",
+            temperature: 0.1,
 
-              "X-Title":
-                "ContextGraph",
+            configuration: {
+              baseURL:
+                env.openrouter.baseUrl,
+
+              defaultHeaders: {
+                "HTTP-Referer":
+                  "http://localhost:5000",
+
+                "X-Title":
+                  "ContextGraph",
+              },
             },
-          },
-        });
+          });
 
         const response =
           await model.invoke([
             {
               role: "system",
-              content: request.systemPrompt,
+              content:
+                request.systemPrompt,
             },
             {
               role: "user",
-              content: request.userPrompt,
+              content:
+                request.userPrompt,
             },
           ]);
 
-        const content = extractContent(
-          response.content
-        );
+        const content =
+          extractContent(
+            response.content,
+          );
 
         if (!content.trim()) {
           throw new Error(
-            "Model returned an empty response"
+            "Model returned an empty response",
           );
         }
 
         console.log(
-          `[AI] Successfully generated response using: ${modelName}`
+          `[AI] Successfully generated using ${modelName}`,
         );
 
         return {
@@ -201,25 +232,13 @@ export class OpenRouterProvider
           {
             status,
             error: message,
-          }
+          },
         );
-
-        /*
-         * Continue to the next model.
-         *
-         * This intentionally handles:
-         * - 429 rate limits
-         * - 404 unavailable models
-         * - provider errors
-         * - malformed provider responses
-         * - network errors
-         */
-        continue;
       }
     }
 
     throw new Error(
-      `All configured OpenRouter models failed. Last error: ${lastError}`
+      `All configured OpenRouter models failed. Last error: ${lastError}`,
     );
   }
 }

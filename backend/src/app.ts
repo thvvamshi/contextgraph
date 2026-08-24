@@ -1,8 +1,11 @@
 import express from "express";
 import cors from "cors";
+
 import { env } from "./config/env.js";
+import { requestLogger } from "./middleware/request-logger.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { notFoundHandler } from "./middleware/not-found.js";
+
 import customerRoutes from "./routes/customer.routes.js";
 import contextRoutes from "./routes/context.routes.js";
 import graphRoutes from "./routes/graph.routes.js";
@@ -10,11 +13,13 @@ import aiContextRoutes from "./routes/ai-context.routes.js";
 
 const app = express();
 
+app.use(requestLogger);
+
 app.use(
   cors({
     origin: env.frontendUrl,
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());

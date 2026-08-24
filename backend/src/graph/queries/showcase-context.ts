@@ -1,69 +1,110 @@
 export const showcaseContextQuery = `
-  MATCH (customer:Customer)
-  WHERE customer.tier = $customerTier
+MATCH (customer:Customer)
+WHERE customer.tier = $customerTier
 
-  MATCH (customer)-[:RAISED]->(ticket:Ticket)
-        -[:ABOUT]->(product:Product)
+MATCH (customer)-[:RAISED]->(ticket:Ticket)
+      -[:ABOUT]->(product:Product)
 
-  OPTIONAL MATCH (ticket)-[:RELATED_TO]->(bug:Bug)
-  OPTIONAL MATCH (bug)-[:OWNED_BY]->(team:Team)
-  OPTIONAL MATCH (team)-[:HAS_MEMBER]->(person:Person)
-  OPTIONAL MATCH (bug)-[:RESOLVED_BY]->(resolution:Resolution)
-  OPTIONAL MATCH (resolution)-[:DOCUMENTED_IN]->(document:Document)
+OPTIONAL MATCH (ticket)-[:RELATED_TO]->(bug:Bug)
 
-  RETURN
-    customer {
-      .id,
-      .name,
-      .industry,
-      .tier
-    } AS customer,
+OPTIONAL MATCH (bug)-[:OWNED_BY]->(team:Team)
 
-    ticket {
-      .id,
-      .title,
-      .status,
-      .priority,
-      .createdAt
-    } AS ticket,
+OPTIONAL MATCH (bug)-[:RESOLVED_BY]->(resolution:Resolution)
 
-    product {
-      .id,
-      .name,
-      .category,
-      .status
-    } AS product,
+OPTIONAL MATCH (resolution)-[:DOCUMENTED_IN]->(document:Document)
 
-    bug {
-      .id,
-      .title,
-      .severity,
-      .status
-    } AS bug,
+OPTIONAL MATCH (team)-[:HAS_MEMBER]->(person:Person)
 
-    team {
-      .id,
-      .name,
-      .function
-    } AS team,
+WITH
+  customer,
+  ticket,
+  product,
+  bug,
+  team,
+  resolution,
+  document,
+  collect(person) AS members
 
-    person {
-      .id,
-      .name,
-      .role
-    } AS expert,
+WITH
+  customer,
+  ticket,
+  product,
+  bug,
+  team,
+  resolution,
+  document,
 
-    resolution {
-      .id,
-      .title,
-      .status
-    } AS resolution,
+  CASE
+    WHEN team.id = "team-payments"
+    THEN head([
+      person IN members
+      WHERE person.id = "person-rahul"
+    ])
 
-    document {
-      .id,
-      .title,
-      .type
-    } AS document
+    WHEN team.id = "team-checkout"
+    THEN head([
+      person IN members
+      WHERE person.id = "person-arjun"
+    ])
 
-  ORDER BY customer.name, ticket.createdAt DESC
+    ELSE head(members)
+  END AS person
+
+RETURN
+  customer {
+    .id,
+    .name,
+    .industry,
+    .tier
+  } AS customer,
+
+  ticket {
+    .id,
+    .title,
+    .status,
+    .priority,
+    .createdAt
+  } AS ticket,
+
+  product {
+    .id,
+    .name,
+    .category,
+    .status
+  } AS product,
+
+  bug {
+    .id,
+    .title,
+    .severity,
+    .status
+  } AS bug,
+
+  team {
+    .id,
+    .name,
+    .function
+  } AS team,
+
+  person {
+    .id,
+    .name,
+    .role
+  } AS expert,
+
+  resolution {
+    .id,
+    .title,
+    .status
+  } AS resolution,
+
+  document {
+    .id,
+    .title,
+    .type
+  } AS document
+
+ORDER BY
+  customer.name,
+  ticket.createdAt DESC
 `;

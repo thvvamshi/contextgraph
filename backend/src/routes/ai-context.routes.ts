@@ -8,49 +8,20 @@ const router = Router();
 
 const graphRepository = new GraphRepository();
 
-const aiContextService =
-  new AIContextService(graphRepository);
+const aiContextService = new AIContextService(graphRepository);
 
-const aiContextController =
-  new AIContextController(aiContextService);
+const aiContextController = new AIContextController(aiContextService);
 
-router.get(
-  "/customers/:customerId",
-  aiContextController.getCustomerAIContext
-);
+router.get("/customers/:customerId", aiContextController.getCustomerAIContext);
 
 router.post(
   "/customers/:customerId/query",
-  aiContextController.answerCustomerQuestion
+  aiContextController.answerCustomerQuestion,
 );
 
 router.get(
   "/customers/:customerId/issue-context",
-  async (req, res) => {
-    try {
-      const { customerId } = req.params;
-
-      const data =
-        await graphRepository.getCustomerRelevantContext(
-          customerId
-        );
-
-      res.status(200).json({
-        success: true,
-        data,
-      });
-    } catch (error) {
-      console.error(
-        "Customer issue context error:",
-        error
-      );
-
-      res.status(500).json({
-        success: false,
-        message: "Failed to retrieve issue context",
-      });
-    }
-  }
+  aiContextController.getCustomerIssueContext,
 );
 
 export default router;

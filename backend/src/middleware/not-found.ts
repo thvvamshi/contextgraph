@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 
 export const notFoundHandler = (
   req: Request,
-  res: Response
+  res: Response,
 ): void => {
   res.status(404).json({
     success: false,
+    code: "ROUTE_NOT_FOUND",
     message: `Route not found: ${req.method} ${req.originalUrl}`,
   });
 };
