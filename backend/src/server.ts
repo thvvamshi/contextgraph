@@ -1,8 +1,20 @@
 import app from "./app.js";
+import { checkDatabaseConnection } from "./config/database.js";
 import { env } from "./config/env.js";
 
-app.listen(env.port, () => {
-  console.log(
-    `ContextGraph API running on http://localhost:${env.port}`
-  );
-});
+const startServer = async (): Promise<void> => {
+  try {
+    await checkDatabaseConnection();
+
+    app.listen(env.port, () => {
+      console.log(
+        `ContextGraph API running on http://localhost:${env.port}`
+      );
+    });
+  } catch (error) {
+    console.error("Failed to connect to CognoDB:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
