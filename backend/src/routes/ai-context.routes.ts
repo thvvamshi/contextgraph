@@ -24,4 +24,33 @@ router.post(
   aiContextController.answerCustomerQuestion
 );
 
+router.get(
+  "/customers/:customerId/issue-context",
+  async (req, res) => {
+    try {
+      const { customerId } = req.params;
+
+      const data =
+        await graphRepository.getCustomerRelevantContext(
+          customerId
+        );
+
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      console.error(
+        "Customer issue context error:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve issue context",
+      });
+    }
+  }
+);
+
 export default router;

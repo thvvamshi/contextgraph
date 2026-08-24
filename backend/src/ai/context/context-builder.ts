@@ -20,6 +20,7 @@ export class ContextBuilder {
         resolutions: context.resolutions,
         documents: context.documents,
         features: context.features,
+        relationships: context.relationships,
       },
     };
   }

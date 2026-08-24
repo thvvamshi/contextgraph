@@ -4,6 +4,10 @@ import { ContextBuilder } from "../ai/context/context-builder.js";
 
 import type {
   AIContext,
+  CustomerAIContext,
+  ContextRelationship,
+  AIEvidence,
+  AIAnswer,
 } from "../ai/context/context-types.js";
 
 import {
@@ -29,9 +33,6 @@ export class AIContextService {
     this.aiProvider = new OpenRouterProvider();
   }
 
-  /**
-   * Build structured AI context from the customer knowledge graph.
-   */
   async buildCustomerContext(
     customerId: string
   ): Promise<AIContext> {
@@ -44,46 +45,45 @@ export class AIContextService {
       throw new Error("Customer not found");
     }
 
+    const relationships =
+      await this.graphRepository.getCustomerAIRelationships(
+        customerId
+      );
+
+    const normalizedRelationships: ContextRelationship[] =
+      relationships.map((relationship) => ({
+        id: relationship.id,
+        source: relationship.source,
+        target: relationship.target,
+        type: relationship.type,
+        properties: relationship.properties,
+      }));
+
+    const customerContext: CustomerAIContext = {
+      customer: context.customer,
+      tickets: context.tickets,
+      products: context.products,
+      bugs: context.bugs,
+      teams: context.teams,
+      experts: context.experts,
+      resolutions: context.resolutions,
+      documents: context.documents,
+      features: context.features,
+      relationships: normalizedRelationships,
+    };
+
     return this.contextBuilder.build(
       customerId,
-      context
+      customerContext
     );
   }
 
-  /**
-   * Prevent known invalid/non-business responses
-   * from being returned to the user.
-   */
-  private isInvalidAIResponse(
-    answer: string
-  ): boolean {
-    const normalized = answer
-      .trim()
-      .toLowerCase();
-
-    if (!normalized) {
-      return true;
-    }
-
-    return (
-      normalized === "user safety: safe" ||
-      normalized === "user safety: unsafe" ||
-      normalized.startsWith("user safety:")
-    );
-  }
-
-  /**
-   * Answer a customer question using only
-   * graph-grounded customer context.
-   */
   async answerCustomerQuestion(
     customerId: string,
     question: string
-  ) {
+  ): Promise<AIAnswer> {
     const aiContext =
-      await this.buildCustomerContext(
-        customerId
-      );
+      await this.buildCustomerContext(customerId);
 
     const {
       systemPrompt,
@@ -99,21 +99,29 @@ export class AIContextService {
         userPrompt,
       });
 
-    if (
-      this.isInvalidAIResponse(
-        response.content
-      )
-    ) {
-      throw new Error(
-        "AI provider returned an invalid grounded response"
+    /*
+     * For now, expose all graph relationships as
+     * available evidence.
+     *
+     * Later we can add a dedicated evidence-selection
+     * step so only relationships actually used by the
+     * answer are returned.
+     */
+    const evidence: AIEvidence[] =
+      aiContext.customerContext.relationships.map(
+        (relationship) => ({
+          source: relationship.source,
+          relationship: relationship.type,
+          target: relationship.target,
+        })
       );
-    }
 
     return {
       customerId,
       question,
       answer: response.content,
       model: response.model,
+      evidence,
       context: aiContext.customerContext,
     };
   }

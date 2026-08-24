@@ -7,6 +7,8 @@ import { showcaseContextQuery } from "../graph/queries/showcase-context.js";
 import { agentContextQuery } from "../graph/queries/agent-context.js";
 import { graphVisualizationQuery } from "../graph/queries/graph-visualization.js";
 import { customerAIContextQuery } from "../graph/queries/customer-ai-context.js";
+import { customerAIRelationshipsQuery } from "../graph/queries/customer-ai-relationships.js";
+import { customerRelevantContextQuery } from "../graph/queries/customer-relevant-context.js";
 
 interface GraphNode {
   properties: {
@@ -256,6 +258,129 @@ export class GraphRepository {
       );
 
       return result.records.length > 0;
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getCustomerAIRelationships(customerId: string) {
+    const driver = getDriver();
+    const session = driver.session();
+
+    try {
+      const result = await session.run(customerAIRelationshipsQuery, {
+        customerId,
+      });
+
+      return result.records.map((record) => {
+        const source = record.get("source");
+        const relationship = record.get("rel");
+        const target = record.get("target");
+
+        return {
+          id: relationship.elementId,
+          source: String(source.properties.id),
+          target: String(target.properties.id),
+          type: relationship.type,
+          properties: relationship.properties,
+        };
+      });
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getCustomerRelevantContext(customerId: string) {
+    const driver = getDriver();
+    const session = driver.session();
+
+    try {
+      const result = await session.run(customerRelevantContextQuery, {
+        customerId,
+      });
+
+      const firstRecord = result.records[0];
+
+      if (!firstRecord) {
+        return null;
+      }
+
+      return {
+        customer: mapNode(firstRecord.get("customer") as GraphNode | null),
+
+        tickets: [
+          ...new Map(
+            result.records
+              .map((record) =>
+                mapNode(record.get("ticket") as GraphNode | null),
+              )
+              .filter((node): node is ContextEntity => node !== null)
+              .map((node) => [node.id, node]),
+          ).values(),
+        ],
+
+        products: [
+          ...new Map(
+            result.records
+              .map((record) =>
+                mapNode(record.get("product") as GraphNode | null),
+              )
+              .filter((node): node is ContextEntity => node !== null)
+              .map((node) => [node.id, node]),
+          ).values(),
+        ],
+
+        bugs: [
+          ...new Map(
+            result.records
+              .map((record) => mapNode(record.get("bug") as GraphNode | null))
+              .filter((node): node is ContextEntity => node !== null)
+              .map((node) => [node.id, node]),
+          ).values(),
+        ],
+
+        teams: [
+          ...new Map(
+            result.records
+              .map((record) => mapNode(record.get("team") as GraphNode | null))
+              .filter((node): node is ContextEntity => node !== null)
+              .map((node) => [node.id, node]),
+          ).values(),
+        ],
+
+        experts: [
+          ...new Map(
+            result.records
+              .map((record) =>
+                mapNode(record.get("person") as GraphNode | null),
+              )
+              .filter((node): node is ContextEntity => node !== null)
+              .map((node) => [node.id, node]),
+          ).values(),
+        ],
+
+        resolutions: [
+          ...new Map(
+            result.records
+              .map((record) =>
+                mapNode(record.get("resolution") as GraphNode | null),
+              )
+              .filter((node): node is ContextEntity => node !== null)
+              .map((node) => [node.id, node]),
+          ).values(),
+        ],
+
+        documents: [
+          ...new Map(
+            result.records
+              .map((record) =>
+                mapNode(record.get("document") as GraphNode | null),
+              )
+              .filter((node): node is ContextEntity => node !== null)
+              .map((node) => [node.id, node]),
+          ).values(),
+        ],
+      };
     } finally {
       await session.close();
     }
