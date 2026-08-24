@@ -1,5 +1,4 @@
 import neo4j, { Driver } from "neo4j-driver";
-
 import { env } from "./env.js";
 
 let driver: Driver | null = null;
@@ -23,7 +22,13 @@ export const getDriver = (): Driver => {
       neo4j.auth.basic(
         env.cognodb.username,
         env.cognodb.password
-      )
+      ),
+      {
+        maxConnectionLifetime: 3 * 60 * 60 * 1000,
+        maxConnectionPoolSize: 50,
+        connectionAcquisitionTimeout: 2 * 60 * 1000,
+        disableLosslessIntegers: true
+      }
     );
   }
 
@@ -32,8 +37,13 @@ export const getDriver = (): Driver => {
 
 export const checkDatabaseConnection = async (): Promise<void> => {
   const databaseDriver = getDriver();
-
   await databaseDriver.verifyConnectivity();
-
   console.log("CognoDB connection successful");
+};
+
+export const closeDriver = async (): Promise<void> => {
+  if (driver) {
+    await driver.close();
+    driver = null;
+  }
 };

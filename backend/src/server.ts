@@ -12,7 +12,7 @@ const startServer = async (): Promise<void> => {
       );
     });
   } catch (error) {
-    console.error("Failed to connect to CognoDB:", error);
+    console.error("Failed to start ContextGraph:", error);
     process.exit(1);
   }
 };
