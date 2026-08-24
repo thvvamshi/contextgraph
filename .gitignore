@@ -36,3 +36,10 @@ coverage/
 # Local test scripts
 wexa-*-test.ps1
 wexa-*-test.ts
+
+# Backend local test scripts
+backend/wexa-*-test.ps1
+backend/wexa-*-test.ts
+
+# Specific local test file
+/backend/wexa-critical-tests.ps1
