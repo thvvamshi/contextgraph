@@ -299,88 +299,31 @@ export class GraphRepository {
         customerId,
       });
 
-      const firstRecord = result.records[0];
+      return result.records.map((record) => {
+        const source = record.get("source") as GraphNode;
+        const relationship = record.get("rel") as GraphRelationship;
+        const target = record.get("target") as GraphNode;
 
-      if (!firstRecord) {
-        return null;
-      }
+        return {
+          source: {
+            id: String(source.properties.id),
+            labels: source.labels,
+            properties: source.properties,
+          },
 
-      return {
-        customer: mapNode(firstRecord.get("customer") as GraphNode | null),
+          relationship: {
+            id: relationship.elementId,
+            type: relationship.type,
+            properties: relationship.properties,
+          },
 
-        tickets: [
-          ...new Map(
-            result.records
-              .map((record) =>
-                mapNode(record.get("ticket") as GraphNode | null),
-              )
-              .filter((node): node is ContextEntity => node !== null)
-              .map((node) => [node.id, node]),
-          ).values(),
-        ],
-
-        products: [
-          ...new Map(
-            result.records
-              .map((record) =>
-                mapNode(record.get("product") as GraphNode | null),
-              )
-              .filter((node): node is ContextEntity => node !== null)
-              .map((node) => [node.id, node]),
-          ).values(),
-        ],
-
-        bugs: [
-          ...new Map(
-            result.records
-              .map((record) => mapNode(record.get("bug") as GraphNode | null))
-              .filter((node): node is ContextEntity => node !== null)
-              .map((node) => [node.id, node]),
-          ).values(),
-        ],
-
-        teams: [
-          ...new Map(
-            result.records
-              .map((record) => mapNode(record.get("team") as GraphNode | null))
-              .filter((node): node is ContextEntity => node !== null)
-              .map((node) => [node.id, node]),
-          ).values(),
-        ],
-
-        experts: [
-          ...new Map(
-            result.records
-              .map((record) =>
-                mapNode(record.get("person") as GraphNode | null),
-              )
-              .filter((node): node is ContextEntity => node !== null)
-              .map((node) => [node.id, node]),
-          ).values(),
-        ],
-
-        resolutions: [
-          ...new Map(
-            result.records
-              .map((record) =>
-                mapNode(record.get("resolution") as GraphNode | null),
-              )
-              .filter((node): node is ContextEntity => node !== null)
-              .map((node) => [node.id, node]),
-          ).values(),
-        ],
-
-        documents: [
-          ...new Map(
-            result.records
-              .map((record) =>
-                mapNode(record.get("document") as GraphNode | null),
-              )
-              .filter((node): node is ContextEntity => node !== null)
-              .map((node) => [node.id, node]),
-          ).values(),
-        ],
-      };
+          target: {
+            id: String(target.properties.id),
+            labels: target.labels,
+            properties: target.properties,
+          },
+        };
+      });
     } finally {
       await session.close();
     }
