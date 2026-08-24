@@ -1,12 +1,12 @@
 import express from "express";
 import cors from "cors";
-
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { notFoundHandler } from "./middleware/not-found.js";
 import customerRoutes from "./routes/customer.routes.js";
 import contextRoutes from "./routes/context.routes.js";
 import graphRoutes from "./routes/graph.routes.js";
+import aiContextRoutes from "./routes/ai-context.routes.js";
 
 const app = express();
 
@@ -31,8 +31,9 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/customers", customerRoutes);
 app.use("/api/context", contextRoutes);
 app.use("/api/graph", graphRoutes);
+app.use("/api/ai-context", aiContextRoutes);
 
 app.use(notFoundHandler);
-app.use(errorHandler);;
+app.use(errorHandler);
 
 export default app;
