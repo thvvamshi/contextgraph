@@ -13,9 +13,8 @@ export class AIContextController {
     res: Response
   ): Promise<void> => {
     try {
-      const { customerId } = customerIdParamSchema.parse(
-        req.params
-      );
+      const { customerId } =
+        customerIdParamSchema.parse(req.params);
 
       const data =
         await this.aiContextService.buildCustomerContext(
@@ -31,8 +30,7 @@ export class AIContextController {
 
       if (
         error instanceof Error &&
-        "statusCode" in error &&
-        error.statusCode === 404
+        error.message === "Customer not found"
       ) {
         res.status(404).json({
           success: false,
@@ -45,6 +43,63 @@ export class AIContextController {
       res.status(500).json({
         success: false,
         message: "Failed to build AI context",
+      });
+    }
+  };
+
+  answerCustomerQuestion = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { customerId } =
+        customerIdParamSchema.parse(req.params);
+
+      const { question } = req.body;
+
+      if (
+        typeof question !== "string" ||
+        !question.trim()
+      ) {
+        res.status(400).json({
+          success: false,
+          message: "question is required",
+        });
+
+        return;
+      }
+
+      const data =
+        await this.aiContextService.answerCustomerQuestion(
+          customerId,
+          question.trim()
+        );
+
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      console.error(
+        "AI customer question error:",
+        error
+      );
+
+      if (
+        error instanceof Error &&
+        error.message === "Customer not found"
+      ) {
+        res.status(404).json({
+          success: false,
+          message: "Customer not found",
+        });
+
+        return;
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to answer customer question",
       });
     }
   };

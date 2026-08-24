@@ -19,4 +19,9 @@ router.get(
   aiContextController.getCustomerAIContext
 );
 
+router.post(
+  "/customers/:customerId/query",
+  aiContextController.answerCustomerQuestion
+);
+
 export default router;

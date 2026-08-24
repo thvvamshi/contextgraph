@@ -13,5 +13,14 @@ export const env = {
     password: process.env.COGNODB_PASSWORD || "",
   },
 
-  frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
+  frontendUrl:
+    process.env.FRONTEND_URL || "http://localhost:3000",
+
+  openrouter: {
+    apiKey: process.env.OPENROUTER_API_KEY || "",
+    model:
+      process.env.AI_MODEL ||
+      "openai/gpt-oss-20b:free",
+    baseUrl: "https://openrouter.ai/api/v1",
+  },
 };
