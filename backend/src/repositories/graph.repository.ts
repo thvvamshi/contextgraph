@@ -4,6 +4,7 @@ import { expertDiscoveryQuery } from "../graph/queries/expert-discovery.js";
 import { resolutionContextQuery } from "../graph/queries/resolution-context.js";
 import { showcaseContextQuery } from "../graph/queries/showcase-context.js";
 import { agentContextQuery } from "../graph/queries/agent-context.js";
+import { graphVisualizationQuery } from "../graph/queries/graph-visualization.js";
 
 export class GraphRepository {
   async getCustomerContext(customerId: string) {
@@ -76,6 +77,41 @@ export class GraphRepository {
       });
 
       return result.records.map((record) => record.toObject());
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getGraphVisualization() {
+    const driver = getDriver();
+    const session = driver.session();
+
+    try {
+      const result = await session.run(graphVisualizationQuery);
+
+      return result.records.map((record) => {
+        const source = record.get("n");
+        const relationship = record.get("r");
+        const target = record.get("m");
+
+        return {
+          source: {
+            id: source.properties.id,
+            labels: source.labels,
+            properties: source.properties,
+          },
+          relationship: {
+            id: relationship.elementId,
+            type: relationship.type,
+            properties: relationship.properties,
+          },
+          target: {
+            id: target.properties.id,
+            labels: target.labels,
+            properties: target.properties,
+          },
+        };
+      });
     } finally {
       await session.close();
     }
