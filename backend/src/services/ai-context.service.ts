@@ -1,9 +1,22 @@
 import { GraphRepository } from "../repositories/graph.repository.js";
+
 import { ContextBuilder } from "../ai/context/context-builder.js";
-import { AIContext } from "../ai/context/context-types.js";
-import { buildCustomerContextPrompt } from "../ai/prompts/customer-context.prompt.js";
-import { AIProvider } from "../ai/providers/ai-provider.js";
-import { OpenRouterProvider } from "../ai/providers/openrouter.provider.js";
+
+import type {
+  AIContext,
+} from "../ai/context/context-types.js";
+
+import {
+  buildCustomerQueryPrompt,
+} from "../ai/prompts/customer-query.prompt.js";
+
+import type {
+  AIProvider,
+} from "../ai/providers/ai-provider.js";
+
+import {
+  OpenRouterProvider,
+} from "../ai/providers/openrouter.provider.js";
 
 export class AIContextService {
   private readonly contextBuilder: ContextBuilder;
@@ -16,11 +29,16 @@ export class AIContextService {
     this.aiProvider = new OpenRouterProvider();
   }
 
+  /**
+   * Build structured AI context from the customer knowledge graph.
+   */
   async buildCustomerContext(
     customerId: string
   ): Promise<AIContext> {
     const context =
-      await this.graphRepository.getCustomerAIContext(customerId);
+      await this.graphRepository.getCustomerAIContext(
+        customerId
+      );
 
     if (!context) {
       throw new Error("Customer not found");
@@ -32,17 +50,45 @@ export class AIContextService {
     );
   }
 
+  /**
+   * Prevent known invalid/non-business responses
+   * from being returned to the user.
+   */
+  private isInvalidAIResponse(
+    answer: string
+  ): boolean {
+    const normalized = answer
+      .trim()
+      .toLowerCase();
+
+    if (!normalized) {
+      return true;
+    }
+
+    return (
+      normalized === "user safety: safe" ||
+      normalized === "user safety: unsafe" ||
+      normalized.startsWith("user safety:")
+    );
+  }
+
+  /**
+   * Answer a customer question using only
+   * graph-grounded customer context.
+   */
   async answerCustomerQuestion(
     customerId: string,
     question: string
   ) {
     const aiContext =
-      await this.buildCustomerContext(customerId);
+      await this.buildCustomerContext(
+        customerId
+      );
 
     const {
       systemPrompt,
       userPrompt,
-    } = buildCustomerContextPrompt(
+    } = buildCustomerQueryPrompt(
       aiContext.customerContext,
       question
     );
@@ -52,6 +98,16 @@ export class AIContextService {
         systemPrompt,
         userPrompt,
       });
+
+    if (
+      this.isInvalidAIResponse(
+        response.content
+      )
+    ) {
+      throw new Error(
+        "AI provider returned an invalid grounded response"
+      );
+    }
 
     return {
       customerId,

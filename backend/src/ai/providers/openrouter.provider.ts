@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 
 import { env } from "../../config/env.js";
+
 import type {
   AIProvider,
   AIProviderRequest,
@@ -8,8 +9,6 @@ import type {
 } from "./ai-provider.js";
 
 export class OpenRouterProvider implements AIProvider {
-  private readonly model: ChatOpenAI;
-
   constructor() {
     if (!env.openrouter.apiKey) {
       throw new Error(
@@ -17,63 +16,120 @@ export class OpenRouterProvider implements AIProvider {
       );
     }
 
-    this.model = new ChatOpenAI({
-      apiKey: env.openrouter.apiKey,
-      model: env.openrouter.model,
-      temperature: 0.1,
-      configuration: {
-        baseURL: env.openrouter.baseUrl,
-        defaultHeaders: {
-          "HTTP-Referer": "http://localhost:5000",
-          "X-Title": "ContextGraph",
-        },
-      },
-    });
+    if (env.openrouter.models.length === 0) {
+      throw new Error(
+        "No OpenRouter models are configured"
+      );
+    }
   }
 
   async generate(
     request: AIProviderRequest
   ): Promise<AIProviderResponse> {
-    const response = await this.model.invoke([
-      {
-        role: "system",
-        content: request.systemPrompt,
-      },
-      {
-        role: "user",
-        content: request.userPrompt,
-      },
-    ]);
+    let lastError: unknown = null;
 
-    const rawContent = response.content;
+    for (const modelName of env.openrouter.models) {
+      try {
+        console.log(
+          `[AI] Trying OpenRouter model: ${modelName}`
+        );
 
-    let content: string;
+        const model = new ChatOpenAI({
+          apiKey: env.openrouter.apiKey,
+          model: modelName,
+          temperature: 0.1,
+          maxRetries: 0,
+          configuration: {
+            baseURL: env.openrouter.baseUrl,
+            defaultHeaders: {
+              "HTTP-Referer": "http://localhost:5000",
+              "X-Title": "ContextGraph",
+            },
+          },
+        });
 
-    if (typeof rawContent === "string") {
-      content = rawContent;
-    } else {
-      content = rawContent
-        .map((part) => {
-          if (typeof part === "string") {
-            return part;
+        const response = await model.invoke([
+          {
+            role: "system",
+            content: request.systemPrompt,
+          },
+          {
+            role: "user",
+            content: request.userPrompt,
+          },
+        ]);
+
+        const rawContent = response.content;
+
+        let content: string;
+
+        if (typeof rawContent === "string") {
+          content = rawContent;
+        } else {
+          content = rawContent
+            .map((part) => {
+              if (typeof part === "string") {
+                return part;
+              }
+
+              if (
+                typeof part === "object" &&
+                part !== null &&
+                "text" in part
+              ) {
+                return String(part.text);
+              }
+
+              return "";
+            })
+            .join("");
+        }
+
+        if (!content.trim()) {
+          throw new Error(
+            `Model ${modelName} returned empty content`
+          );
+        }
+
+        console.log(
+          `[AI] Successfully generated response using: ${modelName}`
+        );
+
+        return {
+          content: content.trim(),
+          model: modelName,
+        };
+      } catch (error) {
+        lastError = error;
+
+        const status =
+          error &&
+          typeof error === "object" &&
+          "status" in error
+            ? error.status
+            : undefined;
+
+        console.warn(
+          `[AI] Model failed: ${modelName}`,
+          {
+            status,
+            error:
+              error instanceof Error
+                ? error.message
+                : String(error),
           }
+        );
 
-          if (
-            typeof part === "object" &&
-            part !== null &&
-            "text" in part
-          ) {
-            return String(part.text);
-          }
-
-          return "";
-        })
-        .join("");
+        continue;
+      }
     }
 
-    return {
-      content,
-      model: env.openrouter.model,
-    };
+    throw new Error(
+      `All configured OpenRouter models failed. Last error: ${
+        lastError instanceof Error
+          ? lastError.message
+          : String(lastError)
+      }`
+    );
   }
 }

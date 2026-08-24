@@ -18,9 +18,15 @@ export const env = {
 
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY || "",
-    model:
-      process.env.AI_MODEL ||
-      "openai/gpt-oss-20b:free",
+
+    models: (
+      process.env.AI_MODELS ||
+      "z-ai/glm-5.2:free,google/gemma-4-31b-it:free,nvidia/nemotron-3-super-120b-a12b:free"
+    )
+      .split(",")
+      .map((model) => model.trim())
+      .filter(Boolean),
+
     baseUrl: "https://openrouter.ai/api/v1",
   },
 };
