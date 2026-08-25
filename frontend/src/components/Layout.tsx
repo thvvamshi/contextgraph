@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import {
   Bot,
   CircleDot,
+  FileText,
   Network,
   Search,
 } from "lucide-react";
@@ -25,16 +26,32 @@ function Layout({ children }: LayoutProps) {
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
-          <NavItem to="/overview" icon={<CircleDot size={17} />}>
+          <NavItem
+            to="/overview"
+            icon={<CircleDot size={17} />}
+          >
             Overview
           </NavItem>
 
-          <NavItem to="/explore" icon={<Search size={17} />}>
+          <NavItem
+            to="/explore"
+            icon={<Search size={17} />}
+          >
             Explore Context
           </NavItem>
 
-          <NavItem to="/ask" icon={<Bot size={17} />}>
+          <NavItem
+            to="/ask"
+            icon={<Bot size={17} />}
+          >
             Ask Agent
+          </NavItem>
+
+          <NavItem
+            to="/docs"
+            icon={<FileText size={17} />}
+          >
+            Documentation
           </NavItem>
         </nav>
 
@@ -73,7 +90,11 @@ interface NavItemProps {
   children: React.ReactNode;
 }
 
-function NavItem({ to, icon, children }: NavItemProps) {
+function NavItem({
+  to,
+  icon,
+  children,
+}: NavItemProps) {
   return (
     <NavLink
       to={to}
@@ -90,4 +111,5 @@ function NavItem({ to, icon, children }: NavItemProps) {
     </NavLink>
   );
 }
+
 export default Layout;
