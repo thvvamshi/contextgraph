@@ -17,6 +17,11 @@ import { Link } from "react-router-dom";
 
 import Layout from "../components/Layout";
 
+const PRODUCTION_API =
+  "https://contextgraph-backend.onrender.com/api";
+
+const LOCAL_API = "http://localhost:5000/api";
+
 function Documentation() {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -47,21 +52,13 @@ function Documentation() {
               <nav className="space-y-1">
                 <DocNav href="#overview" label="Overview" />
                 <DocNav href="#quickstart" label="Quickstart" />
+                <DocNav href="#production" label="Production" />
                 <DocNav href="#architecture" label="Architecture" />
                 <DocNav href="#graph-model" label="Graph model" />
                 <DocNav href="#api" label="API reference" />
-                <DocNav
-                  href="#ai-context"
-                  label="AI context"
-                />
-                <DocNav
-                  href="#examples"
-                  label="Integration examples"
-                />
-                <DocNav
-                  href="#development"
-                  label="Development"
-                />
+                <DocNav href="#ai-context" label="AI context" />
+                <DocNav href="#examples" label="Integration examples" />
+                <DocNav href="#development" label="Development" />
               </nav>
 
               <div className="mt-8 border-t border-slate-200 pt-6">
@@ -70,6 +67,14 @@ function Documentation() {
                 </p>
 
                 <div className="space-y-1">
+                  <Link
+                    to="/overview"
+                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+                  >
+                    <Network size={14} />
+                    Overview
+                  </Link>
+
                   <Link
                     to="/explore"
                     className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
@@ -128,6 +133,16 @@ function Documentation() {
                 >
                   API reference
                 </a>
+
+                <a
+                  href="https://contextgraph-eizw.onrender.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  Open app
+                  <ArrowRight size={15} />
+                </a>
               </div>
             </section>
 
@@ -136,20 +151,18 @@ function Documentation() {
               id="quickstart"
               eyebrow="Get started"
               title="Quickstart"
-              description="Connect your application to ContextGraph and retrieve graph context."
+              description="Connect your application to ContextGraph and retrieve graph-grounded context."
             >
               <div className="space-y-6">
                 <Step
                   number="01"
-                  title="Start the API"
-                  description="Run the ContextGraph backend locally."
+                  title="Check the production API"
+                  description="Verify that the hosted ContextGraph API is available."
                 />
 
                 <CodeBlock
-                  id="quickstart-server"
-                  code={`cd backend
-npm install
-npm run dev`}
+                  id="quickstart-health"
+                  code={`curl ${PRODUCTION_API}/health`}
                   copied={copied}
                   onCopy={copyCode}
                 />
@@ -157,12 +170,12 @@ npm run dev`}
                 <Step
                   number="02"
                   title="Retrieve the graph"
-                  description="The graph endpoint returns nodes and relationships used by the Explore Context interface."
+                  description="Fetch the connected entities and relationships available to the application."
                 />
 
                 <CodeBlock
                   id="quickstart-graph"
-                  code={`curl http://localhost:5000/api/graph`}
+                  code={`curl ${PRODUCTION_API}/graph`}
                   copied={copied}
                   onCopy={copyCode}
                 />
@@ -170,18 +183,104 @@ npm run dev`}
                 <Step
                   number="03"
                   title="Ask a grounded question"
-                  description="Send a customer question to the AI context endpoint."
+                  description="Send a customer question using the production API."
                 />
 
                 <CodeBlock
                   id="quickstart-ai"
-                  code={`curl -X POST http://localhost:5000/api/ai-context/customers/customer-acme/query \\
+                  code={`curl -X POST ${PRODUCTION_API}/ai-context/customers/customer-acme/query \\
   -H "Content-Type: application/json" \\
   -d '{
     "question": "Who owns the customer'\''s current issue?"
   }'`}
                   copied={copied}
                   onCopy={copyCode}
+                />
+              </div>
+            </DocSection>
+
+            {/* Production */}
+            <DocSection
+              id="production"
+              eyebrow="Hosted"
+              title="Production"
+              description="Use the hosted ContextGraph application and API without running the backend locally."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <a
+                  href="https://contextgraph-eizw.onrender.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-sm"
+                >
+                  <Network size={18} className="mb-3 text-slate-600" />
+
+                  <p className="text-sm font-semibold text-slate-900">
+                    Web Application
+                  </p>
+
+                  <p className="mt-1 break-all text-xs text-slate-500">
+                    https://contextgraph-eizw.onrender.com
+                  </p>
+
+                  <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-slate-700">
+                    Open application
+                    <ArrowRight size={12} />
+                  </div>
+                </a>
+
+                <a
+                  href={PRODUCTION_API}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-sm"
+                >
+                  <Server size={18} className="mb-3 text-slate-600" />
+
+                  <p className="text-sm font-semibold text-slate-900">
+                    Production API
+                  </p>
+
+                  <p className="mt-1 break-all text-xs text-slate-500">
+                    {PRODUCTION_API}
+                  </p>
+
+                  <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-slate-700">
+                    Open API
+                    <ArrowRight size={12} />
+                  </div>
+                </a>
+              </div>
+
+              <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+                <div className="flex gap-3">
+                  <Check
+                    size={18}
+                    className="mt-0.5 shrink-0 text-emerald-700"
+                  />
+
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-900">
+                      Production-ready API endpoint
+                    </p>
+
+                    <p className="mt-1 text-sm leading-6 text-emerald-800">
+                      The hosted frontend communicates with the backend over
+                      HTTPS using the production API base URL.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <InfoCard
+                  title="Production API"
+                  value={PRODUCTION_API}
+                />
+
+                <InfoCard
+                  title="Local API"
+                  value={LOCAL_API}
                 />
               </div>
             </DocSection>
@@ -237,6 +336,24 @@ npm run dev`}
                   title="Evidence"
                   text="Answers can expose the graph relationships used to support the result."
                 />
+              </div>
+
+              <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Request flow
+                </p>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <GraphNode label="User" />
+                  <Relationship label="REQUEST" />
+                  <GraphNode label="Express API" />
+                  <Relationship label="TRAVERSE" />
+                  <GraphNode label="CognoDB" />
+                  <Relationship label="CONTEXT" />
+                  <GraphNode label="AI Service" />
+                  <Relationship label="ANSWER" />
+                  <GraphNode label="Evidence" />
+                </div>
               </div>
             </DocSection>
 
@@ -305,6 +422,21 @@ npm run dev`}
                   <GraphNode label="Person" />
                 </div>
               </div>
+
+              <div className="mt-5">
+                <CodeBlock
+                  id="graph-query"
+                  code={`MATCH (customer:Customer {id: $customerId})
+      -[:RAISED]->(ticket:Ticket)
+      -[:RELATED_TO]->(bug:Bug)
+      -[:OWNED_BY]->(team:Team)
+      -[:HAS_MEMBER]->(person:Person)
+
+RETURN customer, ticket, bug, team, person`}
+                  copied={copied}
+                  onCopy={copyCode}
+                />
+              </div>
             </DocSection>
 
             {/* API */}
@@ -320,19 +452,42 @@ npm run dev`}
                     <Server size={17} />
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-900">
-                      Base URL
+                      Production API
                     </p>
 
-                    <code className="mt-1 block text-xs text-slate-500">
-                      http://localhost:5000/api
+                    <code className="mt-1 block break-all text-xs text-slate-500">
+                      {PRODUCTION_API}
+                    </code>
+
+                    <p className="mt-3 text-xs text-slate-400">
+                      Local development
+                    </p>
+
+                    <code className="mt-1 block break-all text-xs text-slate-500">
+                      {LOCAL_API}
                     </code>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
+                <ApiEndpoint
+                  method="GET"
+                  path="/health"
+                  title="Health check"
+                  description="Check whether the ContextGraph API is running."
+                  response={`{
+  "success": true,
+  "message": "ContextGraph API is running",
+  "environment": "production",
+  "timestamp": "..."
+}`}
+                  copied={copied}
+                  onCopy={copyCode}
+                />
+
                 <ApiEndpoint
                   method="GET"
                   path="/graph"
@@ -351,25 +506,39 @@ npm run dev`}
 
                 <ApiEndpoint
                   method="GET"
-                  path="/ai-context/customers/:customerId"
-                  title="Get customer AI context"
-                  description="Builds the complete graph-grounded context for a customer."
+                  path="/context/customers/:customerId"
+                  title="Get customer context"
+                  description="Retrieve support context associated with a customer."
                   response={`{
   "success": true,
   "data": {
-    "customerId": "customer-acme",
-    "customerContext": {
-      "customer": {...},
-      "tickets": [...],
-      "products": [...],
-      "bugs": [...],
-      "teams": [...],
-      "experts": [...],
-      "resolutions": [...],
-      "documents": [...],
-      "features": [...],
-      "relationships": [...]
-    }
+    "customer": {...},
+    "tickets": [...],
+    "products": [...],
+    "bugs": [...]
+  }
+}`}
+                  copied={copied}
+                  onCopy={copyCode}
+                />
+
+                <ApiEndpoint
+                  method="GET"
+                  path="/ai-context/customers/:customerId"
+                  title="Get customer AI context"
+                  description="Build the graph-grounded context used by the AI layer."
+                  response={`{
+  "success": true,
+  "data": {
+    "customer": {...},
+    "tickets": [...],
+    "products": [...],
+    "bugs": [...],
+    "teams": [...],
+    "experts": [...],
+    "resolutions": [...],
+    "documents": [...],
+    "features": [...]
   }
 }`}
                   copied={copied}
@@ -379,8 +548,8 @@ npm run dev`}
                 <ApiEndpoint
                   method="POST"
                   path="/ai-context/customers/:customerId/query"
-                  title="Ask customer context"
-                  description="Answers a question using the customer's connected graph context."
+                  title="Ask Agent"
+                  description="Ask a question using the customer's connected graph context."
                   request={`{
   "question": "Who owns the customer's current issue?"
 }`}
@@ -402,7 +571,7 @@ npm run dev`}
                   method="GET"
                   path="/ai-context/customers/:customerId/issue-context"
                   title="Get issue context"
-                  description="Returns relationship-grounded context for the customer's current issue."
+                  description="Retrieve relationship-grounded context for a customer's issue."
                   response={`{
   "success": true,
   "data": [...]
@@ -468,6 +637,24 @@ npm run dev`}
                   </div>
                 </div>
               </div>
+
+              <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Context pipeline
+                </p>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <GraphNode label="Question" />
+                  <Relationship label="RETRIEVE" />
+                  <GraphNode label="Graph Context" />
+                  <Relationship label="BUILD" />
+                  <GraphNode label="AI Context" />
+                  <Relationship label="GENERATE" />
+                  <GraphNode label="Answer" />
+                  <Relationship label="EXPLAIN" />
+                  <GraphNode label="Evidence" />
+                </div>
+              </div>
             </DocSection>
 
             {/* Examples */}
@@ -490,7 +677,7 @@ npm run dev`}
                   <CodeBlock
                     id="example-js"
                     code={`const response = await fetch(
-  "http://localhost:5000/api/ai-context/customers/customer-acme/query",
+  "${PRODUCTION_API}/ai-context/customers/customer-acme/query",
   {
     method: "POST",
     headers: {
@@ -525,7 +712,7 @@ console.log(result.data.evidence);`}
                     code={`import requests
 
 response = requests.post(
-    "http://localhost:5000/api/ai-context/customers/customer-acme/query",
+    "${PRODUCTION_API}/ai-context/customers/customer-acme/query",
     json={
         "question": "What is the verified resolution?"
     }
@@ -539,6 +726,48 @@ print(data["data"]["evidence"])`}
                     onCopy={copyCode}
                   />
                 </div>
+
+                <div>
+                  <div className="mb-3 flex items-center gap-2">
+                    <Terminal size={16} className="text-slate-500" />
+
+                    <h3 className="text-sm font-semibold text-slate-900">
+                      cURL
+                    </h3>
+                  </div>
+
+                  <CodeBlock
+                    id="example-curl"
+                    code={`curl -X POST ${PRODUCTION_API}/ai-context/customers/customer-acme/query \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "question": "What is the verified resolution?"
+  }'`}
+                    copied={copied}
+                    onCopy={copyCode}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm font-semibold text-slate-900">
+                  Customer IDs
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  The included seed data currently contains the following
+                  example customers.
+                </p>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <code className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600">
+                    customer-acme
+                  </code>
+
+                  <code className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600">
+                    customer-nova
+                  </code>
+                </div>
               </div>
             </DocSection>
 
@@ -549,9 +778,10 @@ print(data["data"]["evidence"])`}
               title="Development"
               description="Run ContextGraph locally and build the frontend and backend."
             >
-              <CodeBlock
-                id="development"
-                code={`# Backend
+              <div className="space-y-6">
+                <CodeBlock
+                  id="development"
+                  code={`# Backend
 cd backend
 npm install
 npm run typecheck
@@ -563,38 +793,101 @@ cd ../frontend
 npm install
 npm run build
 npm run dev`}
-                copied={copied}
-                onCopy={copyCode}
-              />
-
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <CommandCard
-                  command="npm run typecheck"
-                  description="Validate TypeScript without emitting files."
+                  copied={copied}
+                  onCopy={copyCode}
                 />
 
-                <CommandCard
-                  command="npm run build"
-                  description="Create a production build."
-                />
+                <div>
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Backend environment
+                  </p>
 
-                <CommandCard
-                  command="npm run dev"
-                  description="Start the local development server."
-                />
+                  <CodeBlock
+                    id="backend-env"
+                    code={`PORT=5000
+NODE_ENV=development
+
+FRONTEND_URL=http://localhost:5173
+
+COGNODB_URI=bolt+s://your-instance.databases.cognodb.com
+COGNODB_USERNAME=cognodb
+COGNODB_PASSWORD=your_password
+
+AI_PROVIDER=openrouter
+AI_MODELS=model-one,model-two,model-three
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1`}
+                    copied={copied}
+                    onCopy={copyCode}
+                  />
+                </div>
+
+                <div>
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Frontend environment
+                  </p>
+
+                  <CodeBlock
+                    id="frontend-env"
+                    code={`# Local
+VITE_API_URL=http://localhost:5000/api
+
+# Production
+VITE_API_URL=https://contextgraph-backend.onrender.com/api`}
+                    copied={copied}
+                    onCopy={copyCode}
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <CommandCard
+                    command="npm run typecheck"
+                    description="Validate TypeScript without emitting files."
+                  />
+
+                  <CommandCard
+                    command="npm run build"
+                    description="Create a production build."
+                  />
+
+                  <CommandCard
+                    command="npm run dev"
+                    description="Start the local development server."
+                  />
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div className="flex gap-3">
+                    <ShieldCheck
+                      size={18}
+                      className="mt-0.5 shrink-0 text-slate-600"
+                    />
+
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        Keep secrets outside source control
+                      </p>
+
+                      <p className="mt-1 text-sm leading-6 text-slate-500">
+                        Store CognoDB credentials and OpenRouter API keys in
+                        environment variables. Never commit the actual
+                        <code className="mx-1 rounded bg-slate-100 px-1 py-0.5 text-xs">
+                          .env
+                        </code>
+                        file.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </DocSection>
 
             {/* Footer */}
             <footer className="border-t border-slate-200 py-8">
               <div className="flex flex-col gap-3 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-                <span>
-                  ContextGraph · AI Support Intelligence
-                </span>
+                <span>ContextGraph · AI Support Intelligence</span>
 
-                <span>
-                  Graph-backed context for AI applications
-                </span>
+                <span>Graph-backed context for AI applications</span>
               </div>
             </footer>
           </main>
@@ -604,7 +897,8 @@ npm run dev`}
   );
 }
 
-// Components                                                                 */
+/* Documentation navigation */
+
 function DocNav({
   href,
   label,
@@ -621,6 +915,8 @@ function DocNav({
     </a>
   );
 }
+
+/* Section */
 
 function DocSection({
   id,
@@ -659,6 +955,8 @@ function DocSection({
   );
 }
 
+/* Quickstart */
+
 function Step({
   number,
   title,
@@ -675,9 +973,7 @@ function Step({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-slate-900">
-          {title}
-        </h3>
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
 
         <p className="mt-1 text-sm leading-6 text-slate-500">
           {description}
@@ -686,6 +982,8 @@ function Step({
     </div>
   );
 }
+
+/* Code */
 
 function CodeBlock({
   id,
@@ -733,6 +1031,30 @@ function CodeBlock({
   );
 }
 
+/* Production info */
+
+function InfoCard({
+  title,
+  value,
+}: {
+  title: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        {title}
+      </p>
+
+      <code className="mt-2 block break-all text-xs text-slate-600">
+        {value}
+      </code>
+    </div>
+  );
+}
+
+/* Architecture */
+
 function ArchitectureCard({
   icon,
   title,
@@ -748,13 +1070,9 @@ function ArchitectureCard({
         {icon}
       </div>
 
-      <p className="text-sm font-semibold text-slate-900">
-        {title}
-      </p>
+      <p className="text-sm font-semibold text-slate-900">{title}</p>
 
-      <p className="mt-1 text-xs leading-5 text-slate-500">
-        {text}
-      </p>
+      <p className="mt-1 text-xs leading-5 text-slate-500">{text}</p>
     </div>
   );
 }
@@ -782,16 +1100,14 @@ function FeatureCard({
         {icon}
       </div>
 
-      <h3 className="text-sm font-semibold text-slate-900">
-        {title}
-      </h3>
+      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
 
-      <p className="mt-2 text-sm leading-6 text-slate-500">
-        {text}
-      </p>
+      <p className="mt-2 text-sm leading-6 text-slate-500">{text}</p>
     </div>
   );
 }
+
+/* Graph model */
 
 function ModelCard({
   title,
@@ -809,9 +1125,7 @@ function ModelCard({
           {icon}
         </div>
 
-        <h3 className="text-sm font-semibold text-slate-900">
-          {title}
-        </h3>
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -828,11 +1142,7 @@ function ModelCard({
   );
 }
 
-function GraphNode({
-  label,
-}: {
-  label: string;
-}) {
+function GraphNode({ label }: { label: string }) {
   return (
     <span className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700">
       {label}
@@ -840,11 +1150,7 @@ function GraphNode({
   );
 }
 
-function Relationship({
-  label,
-}: {
-  label: string;
-}) {
+function Relationship({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-1.5">
       <ChevronRight size={13} className="text-slate-300" />
@@ -857,6 +1163,8 @@ function Relationship({
     </div>
   );
 }
+
+/* API */
 
 function ApiEndpoint({
   method,
@@ -877,8 +1185,9 @@ function ApiEndpoint({
   copied: string | null;
   onCopy: (id: string, code: string) => void;
 }) {
-  const requestId = `${path}-request`;
-  const responseId = `${path}-response`;
+  const safeId = path.replace(/[^a-zA-Z0-9]+/g, "-");
+  const requestId = `${safeId}-request`;
+  const responseId = `${safeId}-response`;
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -939,6 +1248,8 @@ function ApiEndpoint({
   );
 }
 
+/* AI context */
+
 function ContextStep({
   number,
   title,
@@ -955,17 +1266,15 @@ function ContextStep({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-slate-900">
-          {title}
-        </h3>
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
 
-        <p className="mt-1 text-sm leading-6 text-slate-500">
-          {text}
-        </p>
+        <p className="mt-1 text-sm leading-6 text-slate-500">{text}</p>
       </div>
     </div>
   );
 }
+
+/* Development */
 
 function CommandCard({
   command,
@@ -976,9 +1285,7 @@ function CommandCard({
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-      <code className="text-xs font-medium text-slate-700">
-        {command}
-      </code>
+      <code className="text-xs font-medium text-slate-700">{command}</code>
 
       <p className="mt-2 text-xs leading-5 text-slate-500">
         {description}

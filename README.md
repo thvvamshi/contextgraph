@@ -42,6 +42,16 @@ ContextGraph uses these relationships to answer questions such as:
 
 ---
 
+## Production
+
+ContextGraph is available as a hosted application:
+
+**Web App:** https://contextgraph-eizw.onrender.com
+
+**API:** https://contextgraph-backend.onrender.com/api
+
+The frontend communicates with the ContextGraph API over HTTPS.
+
 ## Why a Graph Database?
 
 The important information in support intelligence is often the **connection between entities**, not just the individual records.
