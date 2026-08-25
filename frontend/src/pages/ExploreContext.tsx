@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import GraphView from "../components/GraphView";
+import NodeDetails from "../components/NodeDetails";
 import { getGraph } from "../services/api";
 import type { GraphLink, GraphNode } from "../types/graph";
 
 function ExploreContext() {
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [links, setLinks] = useState<GraphLink[]>([]);
+  const [selectedNode, setSelectedNode] =
+    useState<GraphNode | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -18,10 +22,10 @@ function ExploreContext() {
 
         const response = await getGraph();
 
-        console.log("Graph loaded:", response);
-
         if (!response.success) {
-          throw new Error("Graph API returned unsuccessful response");
+          throw new Error(
+            "Graph API returned unsuccessful response",
+          );
         }
 
         setNodes(response.data.nodes);
@@ -52,19 +56,20 @@ function ExploreContext() {
             </h1>
 
             <p className="mt-2 text-gray-500">
-              Explore customer, ticket, bug, team, expert, and resolution
-              relationships.
+              Explore customer, ticket, bug, team, expert,
+              and resolution relationships.
             </p>
           </div>
 
           {!loading && !error && (
             <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-500">
-              {nodes.length} entities · {links.length} relationships
+              {nodes.length} entities · {links.length}{" "}
+              relationships
             </div>
           )}
         </div>
 
-        <div className="mt-8 h-[600px] overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="relative mt-8 h-[600px] overflow-hidden rounded-xl border border-gray-200 bg-white">
           {loading && (
             <div className="flex h-full items-center justify-center">
               <p className="text-sm text-gray-500">
@@ -87,17 +92,37 @@ function ExploreContext() {
             </div>
           )}
 
-          {!loading && !error && nodes.length === 0 && (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-gray-400">
-                No graph data available.
-              </p>
-            </div>
-          )}
+          {!loading &&
+            !error &&
+            nodes.length === 0 && (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm text-gray-400">
+                  No graph data available.
+                </p>
+              </div>
+            )}
 
-          {!loading && !error && nodes.length > 0 && (
-            <GraphView nodes={nodes} links={links} />
-          )}
+          {!loading &&
+            !error &&
+            nodes.length > 0 && (
+              <>
+                <GraphView
+                  nodes={nodes}
+                  links={links}
+                  onNodeSelect={setSelectedNode}
+                />
+
+                {selectedNode && (
+                  <NodeDetails
+  node={selectedNode}
+  nodes={nodes}
+  links={links}
+  onClose={() => setSelectedNode(null)}
+  onNodeSelect={setSelectedNode}
+/>
+                )}
+              </>
+            )}
         </div>
       </div>
     </Layout>

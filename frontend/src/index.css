@@ -49,3 +49,78 @@ button {
 a {
   text-decoration: none;
 }
+
+/* =========================================
+   ContextGraph - React Flow UI
+   ========================================= */
+
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.react-flow__controls-button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  color: #64748b;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.react-flow__controls-button:hover {
+  background: #f8fafc;
+  color: #111827;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: 0;
+}
+
+.react-flow__controls-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* React Flow attribution */
+.react-flow__attribution {
+  display: none;
+}
+
+/* MiniMap */
+.react-flow__minimap {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.react-flow__minimap-mask {
+  fill: rgba(241, 245, 249, 0.75);
+}
+
+/* React Flow selection */
+.react-flow__node.selected {
+  outline: none;
+}
+
+/* Graph background */
+.react-flow__pane {
+  cursor: default;
+}
+
+/* Edge labels */
+.react-flow__edge-text {
+  pointer-events: none;
+}
