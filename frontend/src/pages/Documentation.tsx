@@ -22,6 +22,9 @@ const PRODUCTION_API =
 
 const LOCAL_API = "http://localhost:5000/api";
 
+const PRODUCTION_APP =
+  "https://contextgraph-eizw.onrender.com";
+
 function Documentation() {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -135,7 +138,7 @@ function Documentation() {
                 </a>
 
                 <a
-                  href="https://contextgraph-eizw.onrender.com"
+                  href={PRODUCTION_APP}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
@@ -191,7 +194,7 @@ function Documentation() {
                   code={`curl -X POST ${PRODUCTION_API}/ai-context/customers/customer-acme/query \\
   -H "Content-Type: application/json" \\
   -d '{
-    "question": "Who owns the customer'\''s current issue?"
+    "question": "Who owns the customer'\\''s current issue?"
   }'`}
                   copied={copied}
                   onCopy={copyCode}
@@ -208,7 +211,7 @@ function Documentation() {
             >
               <div className="grid gap-4 md:grid-cols-2">
                 <a
-                  href="https://contextgraph-eizw.onrender.com"
+                  href={PRODUCTION_APP}
                   target="_blank"
                   rel="noreferrer"
                   className="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-sm"
@@ -220,7 +223,7 @@ function Documentation() {
                   </p>
 
                   <p className="mt-1 break-all text-xs text-slate-500">
-                    https://contextgraph-eizw.onrender.com
+                    {PRODUCTION_APP}
                   </p>
 
                   <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-slate-700">
@@ -261,12 +264,13 @@ function Documentation() {
 
                   <div>
                     <p className="text-sm font-semibold text-emerald-900">
-                      Production-ready API endpoint
+                      Hosted ContextGraph instance
                     </p>
 
                     <p className="mt-1 text-sm leading-6 text-emerald-800">
                       The hosted frontend communicates with the backend over
-                      HTTPS using the production API base URL.
+                      HTTPS, and the backend connects to the CognoDB graph
+                      database.
                     </p>
                   </div>
                 </div>
@@ -436,6 +440,29 @@ RETURN customer, ticket, bug, team, person`}
                   copied={copied}
                   onCopy={copyCode}
                 />
+              </div>
+
+              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <div className="flex gap-3">
+                  <Database
+                    size={18}
+                    className="mt-0.5 shrink-0 text-slate-600"
+                  />
+
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      Graph-backed support model
+                    </p>
+
+                    <p className="mt-1 text-sm leading-6 text-slate-500">
+                      The same graph model can be extended with additional
+                      customers, tickets, bugs, incidents, teams, experts,
+                      products, components, vendors, resolutions, and
+                      documentation without changing the fundamental
+                      relationship-based approach.
+                    </p>
+                  </div>
+                </div>
               </div>
             </DocSection>
 
@@ -751,12 +778,12 @@ print(data["data"]["evidence"])`}
 
               <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
                 <p className="text-sm font-semibold text-slate-900">
-                  Customer IDs
+                  Included seed customers
                 </p>
 
                 <p className="mt-1 text-sm leading-6 text-slate-500">
-                  The included seed data currently contains the following
-                  example customers.
+                  The current demo seed data contains interconnected support
+                  scenarios for the following customers.
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -767,6 +794,63 @@ print(data["data"]["evidence"])`}
                   <code className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600">
                     customer-nova
                   </code>
+
+                  <code className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600">
+                    customer-orbit
+                  </code>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
+                <p className="text-sm font-semibold text-slate-900">
+                  Seed dataset
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  The included seed script provides a larger interconnected
+                  support graph for demonstrating graph traversal and
+                  graph-grounded AI responses.
+                </p>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <DataStat value="3" label="Customers" />
+                  <DataStat value="52" label="Tickets" />
+                  <DataStat value="25" label="Bugs" />
+                  <DataStat value="8" label="Products" />
+                  <DataStat value="7" label="Teams" />
+                  <DataStat value="25" label="Resolutions" />
+                  <DataStat value="25" label="Documents" />
+                  <DataStat value="300+" label="Relationships" />
+                </div>
+
+                <p className="mt-4 text-xs leading-5 text-slate-400">
+                  The exact connected-entity counts returned for a customer
+                  can vary depending on the customer's reachable graph
+                  context.
+                </p>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <div className="flex gap-3">
+                  <Database
+                    size={18}
+                    className="mt-0.5 shrink-0 text-slate-600"
+                  />
+
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      Use your own data
+                    </p>
+
+                    <p className="mt-1 text-sm leading-6 text-slate-500">
+                      The included seed dataset is provided for demonstration.
+                      You can replace or extend the seed data with your own
+                      customers, tickets, bugs, incidents, products, teams,
+                      components, vendors, resolutions, documents, and other
+                      support entities in CognoDB while keeping the same
+                      relationship-based graph model.
+                    </p>
+                  </div>
                 </div>
               </div>
             </DocSection>
@@ -809,7 +893,7 @@ NODE_ENV=development
 
 FRONTEND_URL=http://localhost:5173
 
-COGNODB_URI=bolt+s://your-instance.databases.cognodb.com
+COGNODB_URI=bolt+s://your-instance.databases.cognodb.cloud
 COGNODB_USERNAME=cognodb
 COGNODB_PASSWORD=your_password
 
@@ -870,7 +954,7 @@ VITE_API_URL=https://contextgraph-backend.onrender.com/api`}
 
                       <p className="mt-1 text-sm leading-6 text-slate-500">
                         Store CognoDB credentials and OpenRouter API keys in
-                        environment variables. Never commit the actual
+                        environment variables. Never commit the actual{" "}
                         <code className="mx-1 rounded bg-slate-100 px-1 py-0.5 text-xs">
                           .env
                         </code>
@@ -1049,6 +1133,26 @@ function InfoCard({
       <code className="mt-2 block break-all text-xs text-slate-600">
         {value}
       </code>
+    </div>
+  );
+}
+
+/* Dataset */
+
+function DataStat({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-3">
+      <p className="text-lg font-semibold tracking-tight text-slate-900">
+        {value}
+      </p>
+
+      <p className="mt-0.5 text-[11px] text-slate-500">{label}</p>
     </div>
   );
 }

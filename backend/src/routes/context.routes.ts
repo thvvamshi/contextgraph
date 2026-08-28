@@ -10,9 +10,6 @@ const graphRepository = new GraphRepository();
 const contextService = new ContextService(graphRepository);
 const contextController = new ContextController(contextService);
 
-router.get(
-  "/showcase",
-  contextController.getShowcaseContext
-);
+router.get("/showcase", contextController.getShowcaseContext);
 
 export default router;

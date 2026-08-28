@@ -3,72 +3,204 @@ import {
   ArrowRight,
   Bot,
   CheckCircle2,
-  ChevronDown,
   CircleDot,
   Loader2,
   Network,
   Send,
 } from "lucide-react";
-import { useState } from "react";
+
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import Layout from "../components/Layout";
-import { askAgent } from "../services/api";
+
+import CustomerSelector from "../components/CustomerSelector";
+
+import {
+  askAgent,
+  getCustomers,
+  type CustomerOption,
+} from "../services/api";
+
 import type {
   AIAnswerData,
   AIEvidence,
 } from "../types/ai-context";
 
-interface CustomerOption {
-  id: string;
-  name: string;
-  tier: string;
-}
-
-const customers: CustomerOption[] = [
-  {
-    id: "customer-acme",
-    name: "Acme Corporation",
-    tier: "Enterprise",
-  },
-  {
-    id: "customer-nova",
-    name: "Nova Retail",
-    tier: "Enterprise",
-  },
-];
-
+/*
+ * Example questions.
+ */
 const exampleQuestions = [
   "Who owns the customer's current issue?",
+
   "What is the verified resolution?",
+
   "Who are the experts working on this issue?",
+
+  "Which team owns the issue, which experts are on that team, and which component and vendors are affected?",
 ];
 
+/*
+ * Ask Agent page.
+ */
 function AskAgent() {
+  /*
+   * Customers loaded dynamically
+   * from GET /api/customers.
+   */
+  const [customers, setCustomers] =
+    useState<CustomerOption[]>([]);
+
+  /*
+   * Currently selected customer.
+   */
   const [customerId, setCustomerId] =
-    useState("customer-acme");
+    useState("");
 
-  const [question, setQuestion] = useState("");
+  /*
+   * Customer loading state.
+   */
+  const [customersLoading, setCustomersLoading] =
+    useState(true);
 
+  /*
+   * Customer loading error.
+   */
+  const [customersError, setCustomersError] =
+    useState<string | null>(null);
+
+  /*
+   * Question.
+   */
+  const [question, setQuestion] =
+    useState("");
+
+  /*
+   * AI answer.
+   */
   const [answer, setAnswer] =
     useState<AIAnswerData | null>(null);
 
+  /*
+   * AI request loading state.
+   */
   const [loading, setLoading] =
     useState(false);
 
+  /*
+   * AI request error.
+   */
   const [error, setError] =
     useState<string | null>(null);
 
+  /*
+   * Load customers from backend.
+   */
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadCustomers() {
+      try {
+        setCustomersLoading(true);
+        setCustomersError(null);
+
+        const response =
+          await getCustomers();
+
+        if (!response.success) {
+          throw new Error(
+            "Unable to load customers.",
+          );
+        }
+
+        if (!mounted) {
+          return;
+        }
+
+        setCustomers(response.data);
+
+        /*
+         * Select first customer automatically.
+         */
+        if (response.data.length > 0) {
+          setCustomerId(
+            response.data[0].id,
+          );
+        } else {
+          setCustomerId("");
+        }
+      } catch (err) {
+        console.error(
+          "Failed to load customers:",
+          err,
+        );
+
+        if (!mounted) {
+          return;
+        }
+
+        setCustomersError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load customers.",
+        );
+
+        setCustomers([]);
+        setCustomerId("");
+      } finally {
+        if (mounted) {
+          setCustomersLoading(false);
+        }
+      }
+    }
+
+    loadCustomers();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  /*
+   * Currently selected customer.
+   */
   const selectedCustomer =
     customers.find(
       (customer) =>
         customer.id === customerId,
-    ) ?? customers[0];
+    ) ?? null;
 
+  /*
+   * Change customer.
+   */
+  function handleCustomerChange(
+    nextCustomerId: string,
+  ) {
+    setCustomerId(nextCustomerId);
+
+    /*
+     * Clear previous answer because
+     * it belongs to the previous customer.
+     */
+    setAnswer(null);
+    setError(null);
+  }
+
+  /*
+   * Ask graph-grounded AI agent.
+   */
   async function handleAsk() {
     const trimmedQuestion =
       question.trim();
 
-    if (!trimmedQuestion || loading) {
+    if (
+      !trimmedQuestion ||
+      !customerId ||
+      loading ||
+      customersLoading
+    ) {
       return;
     }
 
@@ -77,10 +209,11 @@ function AskAgent() {
     setAnswer(null);
 
     try {
-      const response = await askAgent(
-        customerId,
-        trimmedQuestion,
-      );
+      const response =
+        await askAgent(
+          customerId,
+          trimmedQuestion,
+        );
 
       if (!response.success) {
         throw new Error(
@@ -95,10 +228,11 @@ function AskAgent() {
         err,
       );
 
-      if (
-        err instanceof Error &&
-        err.message
-      ) {
+      /*
+       * Try to surface Axios/backend error
+       * when available.
+       */
+      if (err instanceof Error) {
         setError(err.message);
       } else {
         setError(
@@ -110,20 +244,29 @@ function AskAgent() {
     }
   }
 
+  /*
+   * Select example question.
+   */
   function handleExampleClick(
     example: string,
   ) {
     setQuestion(example);
+    setError(null);
   }
 
+  /*
+   * Ctrl + Enter / Cmd + Enter.
+   */
   function handleKeyDown(
     event: React.KeyboardEvent<HTMLTextAreaElement>,
   ) {
     if (
       event.key === "Enter" &&
-      (event.ctrlKey || event.metaKey)
+      (event.ctrlKey ||
+        event.metaKey)
     ) {
       event.preventDefault();
+
       handleAsk();
     }
   }
@@ -131,7 +274,11 @@ function AskAgent() {
   return (
     <Layout>
       <div className="mx-auto max-w-5xl">
+
+        {/* ========================= */}
         {/* Header */}
+        {/* ========================= */}
+
         <section className="mb-8">
           <div className="mb-3 flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900">
@@ -151,58 +298,54 @@ function AskAgent() {
           </h1>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-            Ask questions about customers, tickets,
-            bugs, teams, experts, and resolutions.
-            Answers are grounded in the connected
-            context graph.
+            Ask questions about customers,
+            tickets, bugs, teams, experts,
+            and resolutions. Answers are
+            grounded in the connected context
+            graph.
           </p>
         </section>
 
+        {/* ========================= */}
         {/* Query Card */}
+        {/* ========================= */}
+
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
           {/* Customer selector */}
+
           <div className="mb-5">
-            <label
-              htmlFor="customer"
-              className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
-            >
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
               Customer context
             </label>
 
-            <div className="relative w-full max-w-sm">
-              <select
-                id="customer"
-                value={customerId}
-                onChange={(event) => {
-                  setCustomerId(
-                    event.target.value,
-                  );
-                  setAnswer(null);
-                  setError(null);
-                }}
-                className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-sm font-medium text-slate-800 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-              >
-                {customers.map(
-                  (customer) => (
-                    <option
-                      key={customer.id}
-                      value={customer.id}
-                    >
-                      {customer.name} ·{" "}
-                      {customer.tier}
-                    </option>
-                  ),
-                )}
-              </select>
+            <CustomerSelector
+              customers={customers}
+              value={customerId}
+              onChange={
+                handleCustomerChange
+              }
+              disabled={loading}
+              loading={customersLoading}
+            />
 
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-            </div>
+            {/* Customer loading error */}
+
+            {customersError && (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <p className="text-sm font-medium text-red-700">
+                  Unable to load customers
+                </p>
+
+                <p className="mt-1 text-xs text-red-500">
+                  {customersError}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Selected customer */}
+
           <div className="mb-5 flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm">
               <CircleDot
@@ -212,17 +355,42 @@ function AskAgent() {
             </div>
 
             <div>
-              <p className="text-sm font-medium text-slate-800">
-                {selectedCustomer.name}
-              </p>
+              {selectedCustomer ? (
+                <>
+                  <p className="text-sm font-medium text-slate-800">
+                    {selectedCustomer.name}
+                  </p>
 
-              <p className="text-xs text-slate-400">
-                {selectedCustomer.id}
-              </p>
+                  <p className="text-xs text-slate-400">
+                    {selectedCustomer.id}
+                  </p>
+                </>
+              ) : customersLoading ? (
+                <>
+                  <p className="text-sm font-medium text-slate-500">
+                    Loading customers...
+                  </p>
+
+                  <p className="text-xs text-slate-400">
+                    Retrieving graph context
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-slate-500">
+                    No customer selected
+                  </p>
+
+                  <p className="text-xs text-slate-400">
+                    No customers available
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
           {/* Question */}
+
           <label
             htmlFor="question"
             className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
@@ -234,7 +402,9 @@ function AskAgent() {
             id="question"
             value={question}
             onChange={(event) =>
-              setQuestion(event.target.value)
+              setQuestion(
+                event.target.value,
+              )
             }
             onKeyDown={handleKeyDown}
             disabled={loading}
@@ -243,6 +413,7 @@ function AskAgent() {
           />
 
           {/* Example questions */}
+
           <div className="mt-4">
             <p className="mb-2 text-xs text-slate-400">
               Try asking
@@ -270,6 +441,7 @@ function AskAgent() {
           </div>
 
           {/* Action */}
+
           <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-5">
             <p className="text-xs text-slate-400">
               Press Ctrl + Enter to ask
@@ -280,6 +452,8 @@ function AskAgent() {
               onClick={handleAsk}
               disabled={
                 loading ||
+                customersLoading ||
+                !customerId ||
                 !question.trim()
               }
               className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
@@ -290,11 +464,13 @@ function AskAgent() {
                     size={16}
                     className="animate-spin"
                   />
+
                   Thinking...
                 </>
               ) : (
                 <>
                   <Send size={16} />
+
                   Ask Agent
                 </>
               )}
@@ -302,7 +478,10 @@ function AskAgent() {
           </div>
         </section>
 
+        {/* ========================= */}
         {/* Error */}
+        {/* ========================= */}
+
         {error && (
           <section className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5">
             <div className="flex items-start gap-3">
@@ -324,14 +503,25 @@ function AskAgent() {
           </section>
         )}
 
+        {/* ========================= */}
         {/* Answer */}
+        {/* ========================= */}
+
         {answer && (
-          <AnswerPanel answer={answer} />
+          <AnswerPanel
+            answer={answer}
+          />
         )}
       </div>
     </Layout>
   );
 }
+
+/*
+ * ============================
+ * Answer Panel
+ * ============================
+ */
 
 function AnswerPanel({
   answer,
@@ -340,9 +530,12 @@ function AnswerPanel({
 }) {
   return (
     <div className="mt-6 space-y-6">
+
       {/* Answer */}
+
       <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
               <CheckCircle2
@@ -362,7 +555,7 @@ function AnswerPanel({
             </div>
           </div>
 
-          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-500">
+          <span className="max-w-[240px] truncate rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-500">
             {answer.model}
           </span>
         </div>
@@ -375,17 +568,25 @@ function AnswerPanel({
       </section>
 
       {/* Context summary */}
+
       <ContextSummary
         summary={answer.contextSummary}
       />
 
       {/* Evidence */}
+
       <EvidencePanel
         evidence={answer.evidence}
       />
     </div>
   );
 }
+
+/*
+ * ============================
+ * Context Summary
+ * ============================
+ */
 
 function ContextSummary({
   summary,
@@ -429,6 +630,7 @@ function ContextSummary({
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
       <div className="mb-5 flex items-center gap-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
           <Network
@@ -468,6 +670,12 @@ function ContextSummary({
   );
 }
 
+/*
+ * ============================
+ * Evidence Panel
+ * ============================
+ */
+
 function EvidencePanel({
   evidence,
 }: {
@@ -475,7 +683,9 @@ function EvidencePanel({
 }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
       <div className="mb-5 flex items-center justify-between">
+
         <div>
           <h2 className="text-sm font-semibold text-slate-900">
             Graph evidence
@@ -497,8 +707,8 @@ function EvidencePanel({
       {evidence.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-center">
           <p className="text-sm text-slate-400">
-            No graph relationships were returned
-            as evidence.
+            No graph relationships were
+            returned as evidence.
           </p>
         </div>
       ) : (
@@ -517,6 +727,12 @@ function EvidencePanel({
   );
 }
 
+/*
+ * ============================
+ * Evidence Row
+ * ============================
+ */
+
 function EvidenceRow({
   evidence,
 }: {
@@ -524,11 +740,13 @@ function EvidenceRow({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
+
       <span className="min-w-0 flex-1 truncate rounded-md bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
         {evidence.source}
       </span>
 
       <div className="flex shrink-0 items-center gap-1.5">
+
         <ArrowRight
           size={13}
           className="text-slate-400"
@@ -542,6 +760,7 @@ function EvidenceRow({
           size={13}
           className="text-slate-400"
         />
+
       </div>
 
       <span className="min-w-0 flex-1 truncate rounded-md bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
