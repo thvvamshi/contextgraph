@@ -25,6 +25,9 @@ const LOCAL_API = "http://localhost:5000/api";
 const PRODUCTION_APP =
   "https://contextgraph-eizw.onrender.com";
 
+const GITHUB_REPO =
+  "https://github.com/thvvamshi/contextgraph";
+
 function Documentation() {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -123,27 +126,13 @@ function Documentation() {
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <a
-                  href="#quickstart"
-                  className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
-                >
-                  Quickstart
-                  <ArrowRight size={15} />
-                </a>
-
-                <a
-                  href="#api"
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                >
-                  API reference
-                </a>
-
-                <a
-                  href={PRODUCTION_APP}
+                  href={GITHUB_REPO}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
                 >
-                  Open app
+                  <Code2 size={15} />
+                  GitHub Repository
                   <ArrowRight size={15} />
                 </a>
               </div>
