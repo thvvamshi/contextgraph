@@ -19,16 +19,13 @@ export const getDriver = (): Driver => {
 
     driver = neo4j.driver(
       env.cognodb.uri,
-      neo4j.auth.basic(
-        env.cognodb.username,
-        env.cognodb.password
-      ),
+      neo4j.auth.basic(env.cognodb.username, env.cognodb.password),
       {
         maxConnectionLifetime: 3 * 60 * 60 * 1000,
         maxConnectionPoolSize: 50,
         connectionAcquisitionTimeout: 2 * 60 * 1000,
-        disableLosslessIntegers: true
-      }
+        disableLosslessIntegers: true,
+      },
     );
   }
 
@@ -37,13 +34,34 @@ export const getDriver = (): Driver => {
 
 export const checkDatabaseConnection = async (): Promise<void> => {
   const databaseDriver = getDriver();
-  await databaseDriver.verifyConnectivity();
-  console.log("CognoDB connection successful");
+
+  try {
+    await databaseDriver.verifyConnectivity();
+  } catch (error) {
+    console.error("CognoDB connection failed:", error);
+
+    // Reset the driver so the next request can create
+    // a fresh connection after CognoDB becomes available.
+    try {
+      await databaseDriver.close();
+    } catch {
+      // Ignore close errors.
+    }
+
+    driver = null;
+
+    throw error;
+  }
 };
 
 export const closeDriver = async (): Promise<void> => {
-  if (driver) {
+  if (!driver) {
+    return;
+  }
+
+  try {
     await driver.close();
+  } finally {
     driver = null;
   }
 };
